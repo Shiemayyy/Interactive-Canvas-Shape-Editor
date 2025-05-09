@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Canvas</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 1px solid black; /* Simple border for visibility */
+            cursor: pointer; /* Change cursor to pointer for better UX */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Your Profile Information</h1>
+        <p>Complete Name: John Doe</p>
+        <p>Sex: Male</p>
+        <p>Address: 123 Main St, City, Country</p>
+        <p>Course, Year, and Section: BS Computer Science, 3rd Year, Section A</p>
+        <p>Name of School: Example University</p>
+        <p>Semester and Academic Year: 1st Semester, 2023-2024</p>
+        <p>Subject Code and Title: CS101 - Introduction to Programming</p>
+        <p>Name of Subject Instructor: Dr. Smith</p>
+    </header>
+    <canvas id="canvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let circles = [];
+        let selectedCircle = null;
+        const DEFAULT_RADIUS = 20;
+
+        canvas.addEventListener('click', (e) => {
+            if (selectedCircle) {
+                // Deselect the current circle if clicking elsewhere
+                selectedCircle = null;
+                draw();
+            } else {
+                const { offsetX, offsetY } = e;
+                circles.push({ x: offsetX, y: offsetY, radius: DEFAULT_RADIUS, color: 'blue' });
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            const { offsetX, offsetY } = e;
+            for (let i = 0; i < circles.length; i++) {
+                const circle = circles[i];
+                const distance = Math.hypot(circle.x - offsetX, circle.y - offsetY);
+                if (distance < circle.radius) {
+                    selectedCircle = circle;
+                    selectedCircle.index = i; // Store the index for deletion
+                    circle.color = 'red'; // Indicate selection
+                    draw();
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (selectedCircle) {
+                const { offsetX, offsetY } = e;
+                selectedCircle.x = offsetX;
+                selectedCircle.y = offsetY;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (selectedCircle) {
+                selectedCircle.color = 'red'; // Retain red color after moving
+                draw();
+            }
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            if (selectedCircle) {
+                if (e.deltaY < 0 && selectedCircle.radius < 100) {
+                    selectedCircle.radius += 5; // Increase radius
+                } else if (e.deltaY > 0 && selectedCircle.radius > 5) {
+                    selectedCircle.radius -= 5; // Decrease radius
+                }
+                e.preventDefault();
+                draw();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' && selectedCircle) {
+                circles.splice(selectedCircle.index, 1); // Remove the circle
+                selectedCircle = null; // Deselect
+                draw();
+            }
+        });
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            circles.forEach(circle => {
+                ctx.beginPath();
+                ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+                ctx.fillStyle = circle.color;
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+    </script>
+</body>
+</html>
